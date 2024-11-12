@@ -4,11 +4,11 @@ function MenuGUI
 
     % Main menu buttons
     btn1_main_menu = uicontrol(fig, 'Style', 'pushbutton', 'String', 'ECG', ...
-        'Position', [100, 275, 800, 100], 'Callback', @(src, event) switchToECGMenu());
+        'Position', [100, 275, 800, 100],'FontSize', 30, 'FontWeight', 'bold', 'Callback', @(src, event) switchToECGMenu());
     btn2_main_menu = uicontrol(fig, 'Style', 'pushbutton', 'String', 'EMG', ...
-        'Position', [100, 150, 800, 100], 'Callback', @(src, event) switchToEMGMenu());
+        'Position', [100, 150, 800, 100],'FontSize', 30, 'FontWeight', 'bold', 'Callback', @(src, event) switchToEMGMenu());
     btn3_main_menu = uicontrol(fig, 'Style', 'pushbutton', 'String', 'EEG', ...
-        'Position', [100, 25, 800, 100], 'Callback', @(src, event) switchToEEGMenu());
+        'Position', [100, 25, 800, 100],'FontSize', 30, 'FontWeight', 'bold', 'Callback', @(src, event) switchToEEGMenu());
     
     % ECG menu button settings (initially hidden)
     buttonWidth = 200;
@@ -46,20 +46,14 @@ function MenuGUI
             'Position', [x, y, buttonWidth, buttonHeight], ...
             'Visible', 'off', ...
             'Callback', @(src, event) switchToFeatureMenu(CardiacConditions{i}));
-        %if CardiacConditions{i} == '<< back'
-            %back_btn_ECG_menu = uicontrol(fig, 'Style', 'pushbutton', 'String', 'Noise',  ...
-            %'Position', [100, 275, 800, 100], 'Visible', 'off','Callback', @(src, event) switchToMainMenu());
-    % end
     end
 
     % Create the back button
-
     col_back = ceil(18 / 6); % Determine the column (3 total)
-        row_back = mod(18-1, 6) + 1; % Determine the row (1 to 6)
-        
-        % Calculate x and y positions based on row and column
-        x_back = 100 + (col_back - 1) * (buttonWidth + horizontalSpacing);
-        y_back = 350 - (row_back * (buttonHeight + verticalSpacing));
+    row_back = mod(18-1, 6) + 1; % Determine the row (1 to 6)
+    % Calculate x and y positions based on row and column
+    x_back = 100 + (col_back - 1) * (buttonWidth + horizontalSpacing);
+    y_back = 350 - (row_back * (buttonHeight + verticalSpacing));
     back_btn_ECG_menu = uicontrol(fig, 'Style', 'pushbutton', ...
         'String', '<< back', ...
         'Position', [x_back, y_back, buttonWidth, buttonHeight], ...
@@ -68,11 +62,11 @@ function MenuGUI
 
     % Feature menu buttons (initially hidden)
     btn1_feat_menu = uicontrol(fig, 'Style', 'pushbutton', 'String', 'Noise',  ...
-        'Position', [100, 275, 800, 100], 'Visible', 'off','Callback', @(src, event) displayGraphs());
-    btn2_feat_menu = uicontrol(fig, 'Style', 'pushbutton', 'String', 'Amplitude', ...
-        'Position', [100, 150, 800, 100], 'Visible', 'off','Callback', @(src, event) displayGraphs());
-    btn3_feat_menu = uicontrol(fig, 'Style', 'pushbutton', 'String', 'Bandwidth', ...
-        'Position', [100, 25, 800, 100],'Visible', 'off','Callback', @(src, event) displayGraphs());
+        'Position', [100, 275, 800, 100],'FontSize', 30, 'FontWeight', 'bold', 'Visible', 'off','Callback', @(src, event) displayGraphs());
+    btn2_feat_menu = uicontrol(fig, 'Style','pushbutton', 'String', 'Amplitude', ...
+        'Position', [100, 150, 800, 100], 'FontSize', 30, 'FontWeight', 'bold','Visible', 'off','Callback', @(src, event) displayGraphs());
+    btn3_feat_menu = uicontrol(fig, 'Style','pushbutton', 'String', 'Bandwidth', ...
+        'Position', [100, 25, 800, 100],'FontSize', 30, 'FontWeight', 'bold','Visible', 'off','Callback', @(src, event) displayGraphs());
 
      % Function to switch to main menu from ECG menu
     function switchToMainMenu

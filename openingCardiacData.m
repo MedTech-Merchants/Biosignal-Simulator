@@ -10,22 +10,24 @@ Ts = 500; % Recording sampling interval (in ms or seconds as needed)
 Fs = 1/Ts; % Sampling frequency
                 
 % Leads available in the recording (replace if different)
-leads = {'I', 'II', 'III', 'aVR', 'aVL', 'aVF', 'V1','V2','V3','V4','V5','V6'};
+original_order = {'I', 'II', 'III', 'aVR', 'aVL', 'aVF', 'V1', 'V2', 'V3', 'V4', 'V5', 'V6'};
+desired_order = {'I', 'aVR', 'V1', 'V4', 'II', 'aVL', 'V2', 'V5', 'III', 'aVF', 'V3', 'V6'};
+leads = desired_order;
+
 
     % Define file paths and other parameters for specific conditions
     switch condition
         case 'Helathy'
             filepath = 'JS00001.mat'; % Insert the actual file path
-            data = load(filepath);
-            recording = data.val; % Replace 'val' with the actual variable name in the .mat file
+            isCSV = false;
+            varName = 'val';
         
         case 'Atrial Fibrillation'
             filepath = 'MUSE_20180111_155154_74000.csv'; % Insert the actual file path
-            data_bef = readtable(filepath); %chance to readtable f data is in .csv, filepath if data is in .mat
-            data = reshape(data_bef, 12, 5000);
-            recording = data.val;
+            isCSV = true;
 
-            %{
+            %{ 
+        we can input those later so it is easier to debug now
         case 'Ventricular Fibrillation'
         case 'Bradycardia'
         case'Premature Ventricular Contractions'
@@ -41,20 +43,57 @@ leads = {'I', 'II', 'III', 'aVR', 'aVL', 'aVF', 'V1','V2','V3','V4','V5','V6'};
         case 'Heart Block: First Degree'
         case 'Heart Block: Second Degree'
         case 'Heart Block: Third Degree'
-%}
-
-        
+            %}
         otherwise
             disp('Condition not recognized.');
        
     end
 
+    % Convert CSV to .mat if needed using convertCSVmat function
+    if isCSV
+        matfile = convertCSVmat(filepath);
+        if isempty(matfile)
+            disp('Error converting CSV to .mat');
+            return;
+        end
+        load(matfile, 'recording');
+        data = recording; %Access 'recording' saved as the variable of the newly created .mat file
+     
+    else
+        % Load .mat file
+        data = load(filepath);
+        recording = data.(varName);  % Access variable by name
+      
+    end
+
+    recording = reorderLeads(data); % Reorder if necessary
+
+    % Display success message
+    disp([condition, ' data loaded successfully.']);
+
     if isfile(filepath)
-        disp([condition, ' data loaded successfully.']);
-        
-        % Call the common plotting function
+        % Call the plotting function
         plotCardiacData(recording, Ts, leads);
     else
         disp(['File not found for ', condition]);
     end
 end
+
+% Helper function to reorder leads
+function reordered_data = reorderLeads(recording)
+    reordered_data = zeros(12, size(recording, 2)); % Initialize the reordered data matrix
+    % rearrange
+    reordered_data(1, :) = recording(1, :);  % Lead I
+    reordered_data(5, :) = recording(2, :);  % Lead II
+    reordered_data(9, :) = recording(3, :);  % Lead III
+    reordered_data(2, :) = recording(4, :);  % Lead aVR
+    reordered_data(6, :) = recording(5, :);  % Lead aVL
+    reordered_data(10, :) = recording(6, :); % Lead aVF
+    reordered_data(3, :) = recording(7, :);  % Lead V1
+    reordered_data(7, :) = recording(8, :);  % Lead V2
+    reordered_data(11, :) = recording(9, :); % Lead V3
+    reordered_data(4, :) = recording(10, :); % Lead V4
+    reordered_data(8, :) = recording(11, :); % Lead V5
+    reordered_data(12, :) = recording(12, :); % Lead V6
+end
+
