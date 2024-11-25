@@ -17,7 +17,7 @@ leads = desired_order;
 
     % Define file paths and other parameters for specific conditions
     switch condition
-        case 'Helathy'
+        case 'Healthy'
             filepath = 'JS00001.mat'; % Insert the actual file path
             isCSV = false;
             varName = 'val';
