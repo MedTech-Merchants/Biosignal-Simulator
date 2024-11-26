@@ -17,7 +17,7 @@ function MenuGUI
     verticalSpacing = 10;     % Space between rows
 
     CardiacConditions = { ...
-        'Helathy','Atrial Fibrillation', 'Ventricular Fibrillation', 'Bradycardia', ...
+        'Healthy','Atrial Fibrillation', 'Ventricular Fibrillation', 'Bradycardia', ...
         'Premature Ventricular Contractions', 'Long QT syndrome', ...
         'Torsades de pointes', 'Atrial Flutter', 'Ventricular tachycardia', ...
         'AV nodal reentrant tachycardia', 'Premature contraction', ...
@@ -66,7 +66,7 @@ function MenuGUI
     btn2_feat_menu = uicontrol(fig, 'Style','pushbutton', 'String', 'Amplitude', ...
         'Position', [100, 150, 800, 100], 'FontSize', 30, 'FontWeight', 'bold','Visible', 'off','Callback', @(src, event) displayGraphs());
     btn3_feat_menu = uicontrol(fig, 'Style','pushbutton', 'String', 'Bandwidth', ...
-        'Position', [100, 25, 800, 100],'FontSize', 30, 'FontWeight', 'bold','Visible', 'off','Callback', @(src, event) displayGraphs());
+        'Position', [100, 25, 800, 100],'FontSize', 30, 'FontWeight', 'bold','Visible', 'off','Callback', @(src, event) changeBandwidth());
 
      % Function to switch to main menu from ECG menu
     function switchToMainMenu
@@ -121,5 +121,26 @@ function MenuGUI
         % Load the data for the selected condition by calling the external function
         openingCardiacData(selectedCondition);
     end
+
+    function changeBandwidth()
+        % Hide feature menu buttons
+        set([btn1_feat_menu, btn2_feat_menu, btn3_feat_menu], 'Visible', 'off');
+    try 
+        %create prompt 
+        prompt = 'Enter values for low cut-off frequency and high cut-off frequency (e.g., [0.5, 40]): ';
+        userInput = input(prompt);  % Get input from the user as an array
+
+        low = userInput(1);  % First value is low cut-off frequency
+        high = userInput(2); % Second value is high cut-off frequency
+        
+        % Display the entered values
+        disp(['Low cut-off frequency: ', num2str(low)]);
+        disp(['High cut-off frequency: ', num2str(high)]);
+        
+    catch
+        disp('Invalid input. Please enter exactly two values for low and high cut-off frequencies.');
+    end
+    end
+    
 
 end

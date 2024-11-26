@@ -14,13 +14,16 @@ original_order = {'I', 'II', 'III', 'aVR', 'aVL', 'aVF', 'V1', 'V2', 'V3', 'V4',
 desired_order = {'I', 'aVR', 'V1', 'V4', 'II', 'aVL', 'V2', 'V5', 'III', 'aVF', 'V3', 'V6'};
 leads = desired_order;
 
+isCSV = false;
+
 
     % Define file paths and other parameters for specific conditions
     switch condition
         case 'Healthy'
-            filepath = 'JS00001.mat'; % Insert the actual file path
-            isCSV = false;
-            varName = 'val';
+            matfile = 'JS00001.mat'; % Actual .mat file path
+            varName = 'val';  % Name of the variable in the .mat file
+            load(matfile, varName);  % Load the 'val' variable from the .mat file
+            recording = val;  % Assign the loaded 'val' to 'recording'
         
         case 'Atrial Fibrillation'
             filepath = 'MUSE_20180111_155154_74000.csv'; % Insert the actual file path
@@ -57,27 +60,24 @@ leads = desired_order;
             return;
         end
         load(matfile, 'recording');
-        data = recording; %Access 'recording' saved as the variable of the newly created .mat file
-     
-    else
-        % Load .mat file
-        data = load(filepath);
-        recording = data.(varName);  % Access variable by name
-      
     end
 
-    recording = reorderLeads(data); % Reorder if necessary
+    disp(['Size of recording: ', num2str(size(recording))]);
+
+    recording = reorderLeads(recording); % Reorder if necessary
 
     % Display success message
     disp([condition, ' data loaded successfully.']);
 
-    if isfile(filepath)
+    if isfile(matfile)
         % Call the plotting function
         plotCardiacData(recording, Ts, leads);
     else
         disp(['File not found for ', condition]);
     end
 end
+
+
 
 % Helper function to reorder leads
 function reordered_data = reorderLeads(recording)
