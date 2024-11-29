@@ -1,12 +1,8 @@
-function filtered_ecg = ECG_digital_filter(val)
+function filtered_ecg = ECG_digital_filter(val, sampling_frequency, fcutoff_low, fcutoff_high, filter_order)
 % this function spits out an output filtered_ecg when the filter_ecg_signal
 % is called
 
     % defining filter parameters
-    sampling_frequency = 500;
-    fcutoff_low = 0.5;
-    fcutoff_high = 40;
-    filter_order = 100;
     w_n = [fcutoff_low fcutoff_high] / (sampling_frequency / 2); %normalised cutoff frequencies, using Nyquist frequency
 
     % designing the Hamming window FIR filter - like from the signals lecture!!
