@@ -1,4 +1,15 @@
 function MenuGUI
+% predefine flags to know which parameters the user decided to change
+persistent gainValue noiseValue fcutoff_low fcutoff_high;
+persistent isGainSet isNoiseSet isBandwidthSet;
+
+% Initialize flags to false
+isGainSet = false;
+isNoiseSet = false;
+isBandwidthSet = false;
+
+
+
     fig = figure('Name', 'Main-Menu GUI', 'Position', [300, 300, 1000, 400]); % Initialize the GUI window
     selectedCondition = ''; %empty variable to hold delected condition
 
@@ -62,11 +73,13 @@ function MenuGUI
 
     % Feature menu buttons (initially hidden)
     btn1_feat_menu = uicontrol(fig, 'Style', 'pushbutton', 'String', 'Noise',  ...
-        'Position', [100, 275, 800, 100],'FontSize', 30, 'FontWeight', 'bold', 'Visible', 'off','Callback', @(src, event) displayGraphs());
-    btn2_feat_menu = uicontrol(fig, 'Style','pushbutton', 'String', 'Amplitude', ...
-        'Position', [100, 150, 800, 100], 'FontSize', 30, 'FontWeight', 'bold','Visible', 'off','Callback', @(src, event) displayGraphs());
+    'Position', [100, 325, 800, 75],'FontSize', 30, 'FontWeight', 'bold', 'Visible', 'off','Callback', @(src, event) getNoise());
+    btn2_feat_menu = uicontrol(fig, 'Style','pushbutton', 'String', 'Gain', ...
+        'Position', [100, 225, 800, 75], 'FontSize', 30, 'FontWeight', 'bold','Visible', 'off','Callback', @(src, event) getGain());
     btn3_feat_menu = uicontrol(fig, 'Style','pushbutton', 'String', 'Bandwidth', ...
-        'Position', [100, 25, 800, 100],'FontSize', 30, 'FontWeight', 'bold','Visible', 'off','Callback', @(src, event) changeBandwidth());
+        'Position', [100, 125, 800, 75],'FontSize', 30, 'FontWeight', 'bold','Visible', 'off','Callback', @(src, event) getBandwidth());
+    btn4_feat_menu = uicontrol(fig, 'Style','pushbutton', 'String', 'Play', ...
+        'Position', [100, 25, 800, 75],'FontSize', 30, 'FontWeight', 'bold','Visible', 'off','Callback', @(src, event) displayGraphs());
 
      % Function to switch to main menu from ECG menu
     function switchToMainMenu
@@ -95,7 +108,7 @@ function MenuGUI
         set(back_btn_ECG_menu, 'Visible', 'off');
         
         % Show feature menu buttons
-        set([btn1_feat_menu, btn2_feat_menu, btn3_feat_menu], 'Visible', 'on');
+        set([btn1_feat_menu, btn2_feat_menu, btn3_feat_menu, btn4_feat_menu], 'Visible', 'on');
         
         % Store the selected condition for use in displayGraphs
         selectedCondition = condition;
@@ -114,33 +127,88 @@ function MenuGUI
         disp('EEG menu selected');
     end
 
-    function displayGraphs()
-        % Hide feature menu buttons
-        set([btn1_feat_menu, btn2_feat_menu, btn3_feat_menu], 'Visible', 'off');
 
-        % Load the data for the selected condition by calling the external function
-        openingCardiacData(selectedCondition);
+    function getNoise()
+        % Holder function
+        isNoiseSet = true;
+        noiseValue = true; % Or any specific noise level if needed
+        disp('Noise enabled.');
     end
 
-    function changeBandwidth()
-        % Hide feature menu buttons
-        set([btn1_feat_menu, btn2_feat_menu, btn3_feat_menu], 'Visible', 'off');
-    try 
-        %create prompt 
-        prompt = 'Enter values for low cut-off frequency and high cut-off frequency (e.g., [0.5, 40]): ';
-        userInput = input(prompt);  % Get input from the user as an array
 
-        low = userInput(1);  % First value is low cut-off frequency
-        high = userInput(2); % Second value is high cut-off frequency
-        
-        % Display the entered values
-        disp(['Low cut-off frequency: ', num2str(low)]);
-        disp(['High cut-off frequency: ', num2str(high)]);
-        
-    catch
-        disp('Invalid input. Please enter exactly two values for low and high cut-off frequencies.');
+   
+    function getGain()
+        try
+            % Prompt user for gain input
+            prompt = 'Enter gain: ';
+            gainValue = input(prompt); % Assume valid input is given
+            
+            % Validate and set flag
+            if isnumeric(gainValue)
+                isGainSet = true;
+                disp(['Gain set to: ', num2str(gainValue)]);
+            else
+                error('Invalid gain value.');
+            end
+        catch ME
+            disp(['Error in getGain: ', ME.message]);
+        end
     end
+
+
+    function getBandwidth()
+        try
+            % Prompt user for bandwidth input
+            prompt = 'Enter values for low and high cut-off frequencies (e.g., [0.5, 40]): ';
+            bandwidthValues = input(prompt); % Assume valid input is given
+            
+            % Validate and set flag
+            if isnumeric(bandwidthValues) && numel(bandwidthValues) == 2
+                fcutoff_low = bandwidthValues(1);
+                fcutoff_high = bandwidthValues(2);
+                isBandwidthSet = true;
+                disp(['Bandwidth set: Low = ', num2str(fcutoff_low), ', High = ', num2str(fcutoff_high)]);
+            else
+                error('Invalid bandwidth values.');
+            end
+        catch ME
+            disp(['Error in getBandwidth: ', ME.message]);
+        end
     end
     
+    
+    function displayGraphs()
+        % Hide feature menu buttons
+        set([btn1_feat_menu, btn2_feat_menu, btn3_feat_menu, btn4_feat_menu], 'Visible', 'off');
+        
+        % Prepare the signal for the selected condition
+        signal = openingCardiacData(selectedCondition); % Load the base signal
+
+        % Apply gain if set
+        if isGainSet
+            signal = applyGain(signal, gainValue);
+        end
+        
+        % Apply noise if set
+        if isNoiseSet
+            signal = addNoise(signal, noiseValue); % Implement `addNoise` if needed
+            disp('Applied noise.');
+        end
+        
+        % Apply bandwidth filter if set
+        if isBandwidthSet
+            signal = ECG_digitalfilter(signal, fcutoff_low, fcutoff_high); % Implement `filterSignal`
+            disp(['Filtered signal with bandwidth: [', num2str(fcutoff_low), ', ', num2str(fcutoff_high), ']']);
+        end
+
+        % Define sampling rate (for ECG signals, adjust as needed)
+        Fs = 500; % Sampling frequency (Hz)
+        Ts = 1 / Fs; % Sampling interval (seconds)
+
+        % Call the reusable plotting function
+        plotCardiacData(signal, Ts, selectedCondition);
+       
+    end
+
 
 end
