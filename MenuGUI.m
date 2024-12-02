@@ -8,6 +8,11 @@ isGainSet = false;
 isNoiseSet = false;
 isBandwidthSet = false;
 
+% Define sampling rate (for ECG signals, adjust as needed)
+Fs = 500; % Sampling frequency (Hz)
+Ts = 1 / Fs; % Sampling interval (seconds)
+filter_order = 1;
+
 
 
     fig = figure('Name', 'Main-Menu GUI', 'Position', [300, 300, 1000, 400]); % Initialize the GUI window
@@ -137,18 +142,46 @@ isBandwidthSet = false;
 
 
    
+    % function getGain()
+    %     try
+    %         % Prompt user for gain input
+    %         prompt = 'Enter gain: ';
+    %         gainValue = input(prompt); % Assume valid input is given
+    % 
+    %         % Validate and set flag
+    %         if isnumeric(gainValue)
+    %             isGainSet = true;
+    %             disp(['Gain set to: ', num2str(gainValue)]);
+    %         else
+    %             error('Invalid gain value.');
+    %         end
+    %     catch ME
+    %         disp(['Error in getGain: ', ME.message]);
+    %     end
+
     function getGain()
         try
             % Prompt user for gain input
-            prompt = 'Enter gain: ';
-            gainValue = input(prompt); % Assume valid input is given
+            prompt = 'Enter gain value:';
+            dlgTitle = 'Set Gain';
+            dims = [1 35]; % Specify dialog box dimensions
+            defaultInput = {'1'}; % Provide a default value
+            answer = inputdlg(prompt, dlgTitle, dims, defaultInput);
             
-            % Validate and set flag
-            if isnumeric(gainValue)
+            % Validate the user input
+            if isempty(answer)
+                disp('Gain input canceled.');
+                return;
+            end
+            
+            gainValue = str2double(answer{1}); % Convert input to numeric
+            
+            if isnan(gainValue)
+                error('Invalid gain value. Please enter a numeric value.');
+            else
+                % Set gain and update flag
                 isGainSet = true;
                 disp(['Gain set to: ', num2str(gainValue)]);
-            else
-                error('Invalid gain value.');
             end
         catch ME
             disp(['Error in getGain: ', ME.message]);
@@ -156,58 +189,88 @@ isBandwidthSet = false;
     end
 
 
+
+    % function getBandwidth()
+    %     try
+    %         % Prompt user for bandwidth input
+    %         prompt = 'Enter values for low and high cut-off frequencies (e.g., [0.5, 40]): ';
+    %         bandwidthValues = input(prompt); % Assume valid input is given
+    % 
+    %         % Validate and set flag
+    %         if isnumeric(bandwidthValues) && numel(bandwidthValues) == 2
+    %             fcutoff_low = bandwidthValues(1);
+    %             fcutoff_high = bandwidthValues(2);
+    %             isBandwidthSet = true;
+    %             disp(['Bandwidth set: Low = ', num2str(fcutoff_low), ', High = ', num2str(fcutoff_high)]);
+    %         else
+    %             error('Invalid bandwidth values.');
+    %         end
+    %     catch ME
+    %         disp(['Error in getBandwidth: ', ME.message]);
+    %     end
+    % end
+
     function getBandwidth()
         try
-            % Prompt user for bandwidth input
-            prompt = 'Enter values for low and high cut-off frequencies (e.g., [0.5, 40]): ';
-            bandwidthValues = input(prompt); % Assume valid input is given
+            % Prompt user for bandwidth input via dialog box
+            prompt = {'Enter low cut-off frequency:', 'Enter high cut-off frequency:'};
+            dlgTitle = 'Set Bandwidth';
+            dims = [1 35];
+            defaultInput = {'0.5', '40'}; % Default low and high cut-off values
+            answer = inputdlg(prompt, dlgTitle, dims, defaultInput);
             
-            % Validate and set flag
-            if isnumeric(bandwidthValues) && numel(bandwidthValues) == 2
-                fcutoff_low = bandwidthValues(1);
-                fcutoff_high = bandwidthValues(2);
+            % Validate the user input
+            if isempty(answer)
+                disp('Bandwidth input canceled.');
+                return;
+            end
+            
+            fcutoff_low = str2double(answer{1});
+            fcutoff_high = str2double(answer{2});
+            
+            if isnan(fcutoff_low) || isnan(fcutoff_high)
+                error('Invalid bandwidth values. Please enter numeric values.');
+            else
+                % Set bandwidth and update flag
                 isBandwidthSet = true;
                 disp(['Bandwidth set: Low = ', num2str(fcutoff_low), ', High = ', num2str(fcutoff_high)]);
-            else
-                error('Invalid bandwidth values.');
             end
         catch ME
             disp(['Error in getBandwidth: ', ME.message]);
         end
     end
-    
-    
-    function displayGraphs()
-        % Hide feature menu buttons
-        set([btn1_feat_menu, btn2_feat_menu, btn3_feat_menu, btn4_feat_menu], 'Visible', 'off');
-        
-        % Prepare the signal for the selected condition
-        signal = openingCardiacData(selectedCondition); % Load the base signal
 
+    
+    function signal = processSignal()
+        % Load the base signal
+        signal = openingCardiacData(selectedCondition);
+    
         % Apply gain if set
         if isGainSet
             signal = applyGain(signal, gainValue);
         end
-        
+    
         % Apply noise if set
         if isNoiseSet
-            signal = addNoise(signal, noiseValue); % Implement `addNoise` if needed
-            disp('Applied noise.');
+            signal = addNoise(signal, noiseValue);
         end
-        
+    
         % Apply bandwidth filter if set
         if isBandwidthSet
-            signal = ECG_digitalfilter(signal, fcutoff_low, fcutoff_high); % Implement `filterSignal`
-            disp(['Filtered signal with bandwidth: [', num2str(fcutoff_low), ', ', num2str(fcutoff_high), ']']);
+            signal = ECG_digital_filter(signal,Fs, fcutoff_low, fcutoff_high, filter_order);
         end
+    end  
 
-        % Define sampling rate (for ECG signals, adjust as needed)
-        Fs = 500; % Sampling frequency (Hz)
-        Ts = 1 / Fs; % Sampling interval (seconds)
-
-        % Call the reusable plotting function
+    function displayGraphs()
+        % Hides the feature menu buttons
+        set([btn1_feat_menu, btn2_feat_menu, btn3_feat_menu, btn4_feat_menu], 'Visible', 'off');
+    
+        % Process the signal
+        signal = processSignal();
+    
+        % Plot the signal
         plotCardiacData(signal, Ts, selectedCondition);
-       
+    
     end
 
 
