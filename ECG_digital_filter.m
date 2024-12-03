@@ -1,6 +1,5 @@
 function filtered_ecg = ECG_digital_filter(signal, sampling_frequency, fcutoff_low, fcutoff_high, filter_order)
-% this function spits out an output filtered_ecg when the filter_ecg_signal
-% is called
+% this function spits out an output filtered_ecg when the filter_ecg_signal is called
 
     % defining filter parameters
     w_n = [fcutoff_low fcutoff_high] / (sampling_frequency / 2); %normalised cutoff frequencies, using Nyquist frequency

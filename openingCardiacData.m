@@ -1,14 +1,6 @@
-function recording = openingCardiacData(condition)
+function [recording, Fs] = openingCardiacData(condition)
 % a function to load files associated with corresponding cardiac conditions
-% calls the function that plots the data
-
-% Define parameters common for all conditions (can be overwritten for a
-% specific condition if need be)
-n_step = 100; 
-stepSize = 0.2; 
-Ts = 500; % Recording sampling interval (in ms or seconds as needed)
-Fs = 1/Ts; % Sampling frequency
-                
+% calls the function that plots the data 
 
 isCSV = false;
 
@@ -18,12 +10,14 @@ isCSV = false;
         case 'Healthy'
             matfile = 'JS00001.mat'; % Actual .mat file path
             varName = 'val';  % Name of the variable in the .mat file
+            Fs = 500; % insert sampling frequency for the recording
             load(matfile, varName);  % Load the 'val' variable from the .mat file
             recording = val;  % Assign the loaded 'val' to 'recording'
         
         case 'Atrial Fibrillation'
             filepath = 'MUSE_20180111_155154_74000.csv'; % Insert the actual file path
             isCSV = true;
+            Fs = 500; % insert sampling frequency for the recording
 
             %{ 
         we can input those later so it is easier to debug now
@@ -59,4 +53,5 @@ isCSV = false;
     end
 
     disp(['Size of recording: ', num2str(size(recording))]);
+    disp(['Sampling frequency (Fs): ', num2str(Fs)]);
 end

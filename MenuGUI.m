@@ -1,19 +1,12 @@
 function MenuGUI
 % predefine flags to know which parameters the user decided to change
-persistent gainValue noiseValue fcutoff_low fcutoff_high;
+persistent gainValue noiseValue fcutoff_low fcutoff_high filter_order;
 persistent isGainSet isNoiseSet isBandwidthSet;
 
 % Initialize flags to false
 isGainSet = false;
 isNoiseSet = false;
 isBandwidthSet = false;
-
-% Define sampling rate (for ECG signals, adjust as needed)
-Fs = 500; % Sampling frequency (Hz)
-Ts = 1 / Fs; % Sampling interval (seconds)
-filter_order = 1;
-
-
 
     fig = figure('Name', 'Main-Menu GUI', 'Position', [300, 300, 1000, 400]); % Initialize the GUI window
     selectedCondition = ''; %empty variable to hold delected condition
@@ -140,25 +133,6 @@ filter_order = 1;
         disp('Noise enabled.');
     end
 
-
-   
-    % function getGain()
-    %     try
-    %         % Prompt user for gain input
-    %         prompt = 'Enter gain: ';
-    %         gainValue = input(prompt); % Assume valid input is given
-    % 
-    %         % Validate and set flag
-    %         if isnumeric(gainValue)
-    %             isGainSet = true;
-    %             disp(['Gain set to: ', num2str(gainValue)]);
-    %         else
-    %             error('Invalid gain value.');
-    %         end
-    %     catch ME
-    %         disp(['Error in getGain: ', ME.message]);
-    %     end
-
     function getGain()
         try
             % Prompt user for gain input
@@ -188,35 +162,13 @@ filter_order = 1;
         end
     end
 
-
-
-    % function getBandwidth()
-    %     try
-    %         % Prompt user for bandwidth input
-    %         prompt = 'Enter values for low and high cut-off frequencies (e.g., [0.5, 40]): ';
-    %         bandwidthValues = input(prompt); % Assume valid input is given
-    % 
-    %         % Validate and set flag
-    %         if isnumeric(bandwidthValues) && numel(bandwidthValues) == 2
-    %             fcutoff_low = bandwidthValues(1);
-    %             fcutoff_high = bandwidthValues(2);
-    %             isBandwidthSet = true;
-    %             disp(['Bandwidth set: Low = ', num2str(fcutoff_low), ', High = ', num2str(fcutoff_high)]);
-    %         else
-    %             error('Invalid bandwidth values.');
-    %         end
-    %     catch ME
-    %         disp(['Error in getBandwidth: ', ME.message]);
-    %     end
-    % end
-
     function getBandwidth()
         try
             % Prompt user for bandwidth input via dialog box
-            prompt = {'Enter low cut-off frequency:', 'Enter high cut-off frequency:'};
-            dlgTitle = 'Set Bandwidth';
+            prompt = {'Enter low cut-off frequency:', 'Enter high cut-off frequency:', 'Enter filter order:'};
+            dlgTitle = 'Set filter parameters';
             dims = [1 35];
-            defaultInput = {'0.5', '40'}; % Default low and high cut-off values
+            defaultInput = {'0.5', '40', '1'}; % Default low and high cut-off values
             answer = inputdlg(prompt, dlgTitle, dims, defaultInput);
             
             % Validate the user input
@@ -227,13 +179,14 @@ filter_order = 1;
             
             fcutoff_low = str2double(answer{1});
             fcutoff_high = str2double(answer{2});
+            filter_order = str2double(answer{3});
             
             if isnan(fcutoff_low) || isnan(fcutoff_high)
                 error('Invalid bandwidth values. Please enter numeric values.');
             else
                 % Set bandwidth and update flag
                 isBandwidthSet = true;
-                disp(['Bandwidth set: Low = ', num2str(fcutoff_low), ', High = ', num2str(fcutoff_high)]);
+                disp(['Bandwidth set: Low = ', num2str(fcutoff_low), ', High = ', num2str(fcutoff_high), ', Filter order = ', num2str(filter_order)]);
             end
         catch ME
             disp(['Error in getBandwidth: ', ME.message]);
@@ -241,9 +194,9 @@ filter_order = 1;
     end
 
     
-    function signal = processSignal()
+    function [signal, Fs] = processSignal()
         % Load the base signal
-        signal = openingCardiacData(selectedCondition);
+        [signal, Fs] = openingCardiacData(selectedCondition);
     
         % Apply gain if set
         if isGainSet
@@ -266,10 +219,10 @@ filter_order = 1;
         set([btn1_feat_menu, btn2_feat_menu, btn3_feat_menu, btn4_feat_menu], 'Visible', 'off');
     
         % Process the signal
-        signal = processSignal();
+        [signal, Fs] = processSignal();
     
         % Plot the signal
-        plotCardiacData(signal, Ts, selectedCondition);
+        plotCardiacData(signal, 1/Fs, selectedCondition);
     
     end
 

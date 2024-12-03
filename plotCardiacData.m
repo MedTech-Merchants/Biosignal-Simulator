@@ -14,19 +14,6 @@ function plotCardiacData(recording, Ts, selectedCondition)
     % Display success message
     disp([selectedCondition, ' data loaded successfully.']);
 
-
-    %leads = strsplit(leads, ','); % Convert string to cell array if needed
-    %freqAxis = fftshift((-nFFT/2:nFFT/2-1) / nFFT / Ts); % Discrete frequency axis
-    %freqAxis = fftshift(-0.5:1/length(recording):0.5-1/length(recording)); % Discrete frequency axis
-
-    %recording = recording - mean(recording); do we need to do it? - to
-    %decide in the future
-
-    disp('Leads:');
-    disp(leads);
-    disp(['Number of leads: ', num2str(length(leads))]);
-    disp(['Recording size: ', mat2str(size(recording))]);
-
     % Plot Time-Domain Signals
     figure(1);
     hold on;
